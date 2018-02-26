@@ -1,0 +1,47 @@
+#security:
+#  basic:
+#    enabled: true
+#  user:
+#    name: admin
+#    password: 123456
+
+# service reigste
+---
+server:
+  port: 10001
+spring:
+  profiles: Instance1
+  application:
+    name: microservice-time
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:50001/eureka/,http://localhost:50002/eureka/,http://localhost:50003/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+    prefer-ip-address: true
+management: # 用于免密码查看监控信息
+  security:
+    enabled: false
+
+---
+server:
+  port: 10002
+spring:
+  profiles: Instance2
+  application:
+    name: microservice-time
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:50001/eureka/,http://localhost:50002/eureka/,http://localhost:50003/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+    prefer-ip-address: true
+management:
+  security:
+    enabled: false
+
+
+
+

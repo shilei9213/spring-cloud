@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: api-gateway-zuul
+server:
+  port: 60001
+
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:50001/eureka/,http://localhost:50002/eureka/,http://localhost:50003/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+    prefer-ip-address: true
+
+#zuul 手动绑定路由
+zuul:
+  routes:
+    #microservice-time: /time-service/**
+    #细粒度控制
+    time-service_rule:
+      path: /time-service/**
+      serviceId: microservice-time
+  #配置排除哪些服务
+  ignored-services: '*'
+
+#禁用安全来查看routes 功能
+management.security.enabled: false

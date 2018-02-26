@@ -1,0 +1,71 @@
+#安全，设置打开sever的用户名密码，需要配合security 包依赖使用
+#security:
+#  basic:
+#    enabled: true
+#  user:
+#    name: admin
+#    password: 123456
+---
+spring:
+  profiles: Standalone
+  application:
+    name: eureka-server-standalone
+server:
+  port: 8761
+eureka:
+  # 每个EurekaServer 都包含一个EurekaClient，用于请求其他节同步
+  client:
+    service-url:
+      # defaultZone: http://admin:123456@localhost:8761/eureka
+      defaultZone: http://localhost:8761/eureka
+    # 单机版不注册到Eureka
+    registerWithEureka: false
+    fetchRegistry: false
+  instance:
+    # 指定实例名称，默认：${spring.cloud.client.hostname}:${spring.application.name}:${spring.application.instance_id:${server.port}}}
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+    # 管理界面，超链接使用ip而不使用hostname
+    prefer-ip-address: true
+
+---
+#HA 版: 通过运行多个实例并请求他们相互注册, 通过defaultZone 注定本实例要注册到哪些其他的节点
+spring:
+  profiles: Peer1
+  application:
+    name: eureka-server
+server:
+  port: 50001
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:50002/eureka/,http://localhost:50003/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+
+---
+spring:
+  profiles: Peer2
+  application:
+    name: eureka-server
+server:
+  port: 50002
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:50001/eureka/,http://localhost:50003/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+
+---
+spring:
+  profiles: Peer3
+  application:
+    name: eureka-server
+server:
+  port: 50003
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:50001/eureka/,http://localhost:50002/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}

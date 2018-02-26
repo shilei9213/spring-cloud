@@ -1,0 +1,34 @@
+server:
+  port: 20001
+#security:
+#  basic:
+#    enabled: true
+#  user:
+#    name: admin
+#    password: 123456
+
+# 自定义配置
+timeMisroService:
+  server: http://localhost:10001
+  v1:
+    uri: http://microservice-time/time/v1
+
+spring:
+  application:
+    name: webfront
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:50001/eureka/,http://localhost:50002/eureka/,http://localhost:50003/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+    prefer-ip-address: true
+
+# 启动 feign hystrix 支持
+feign:
+    hystrix:
+        enabled: true
+
+management: # 用于免密码查看监控信息
+  security:
+    enabled: false
