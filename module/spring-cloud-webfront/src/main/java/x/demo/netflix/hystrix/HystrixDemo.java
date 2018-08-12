@@ -2,6 +2,7 @@ package x.demo.netflix.hystrix;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
@@ -11,29 +12,32 @@ import com.netflix.hystrix.HystrixThreadPoolProperties;
 import rx.Observable;
 
 /**
- * Hystrix demo
+ * Hystrix demo：
  *
  * @author shilei0907
- * @version 1.0, 2018/6/6
  */
 public class HystrixDemo {
 
     private Service service = new ServiceCircuitBreakerProxy();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         HystrixDemo demo = new HystrixDemo();
 
-        for (int i = 0; i < 100; i++) {
+        //请求服务
+        for (int i = 0; i < 20; i++) {
             demo.run();
         }
+
+        //等待任务结束
+        TimeUnit.MINUTES.sleep(1);
     }
 
-    public void run() {
+    void run() {
         service.service();
     }
 
     /**
-     * 测试接口
+     * 待监测的服务接口
      */
     interface Service {
         boolean service();
@@ -44,47 +48,74 @@ public class HystrixDemo {
      */
     static class ServiceCircuitBreakerProxy extends HystrixCommand<Boolean> implements Service {
 
+        /**
+         * 配置HystrixCommand：
+         * 滑动窗口：1000 毫秒
+         * 桶数：1
+         * --- 则每个统计周期1000毫秒
+         * 超时时间：100毫秒
+         * 熔断器打开错误率：50%
+         * --- 则一个滑动窗口内全部超时约执行10次（有其他是爱你消耗），预计执行8~9次run() 熔断器打开，之后请求直接进入getFallback
+         */
         public ServiceCircuitBreakerProxy() {
-            //setting ： https://github.com/Netflix/Hystrix/wiki/Configuration
             super(Setter
-                    //用于将HystrixCommand进行分组, 监控报表统一统计
+                    /*
+                    一般情况相同业务功能会使用相同的CommandGroupKey。对CommandKey分组，进行逻辑隔离。相同CommandGroupKey会使用同一个线程池或者信号量
+                     */
                     .withGroupKey(HystrixCommandGroupKey.Factory.asKey(ServiceCircuitBreakerProxy.class.getSimpleName()))
-                    //用于将HystrixCommand标记这次处理的命令
+                    /*
+                    一般同一监控服务使用相同的CommandKey，目的把HystrixCommand，HystrixCircuitBreaker，HytrixCommandMerics
+                    以及其他相关对象关联在一起，形成一个原子组。采用原生接口的话，默认值为类名；采用注解形式的话，默认值为方法名
+                     */
                     .andCommandKey(HystrixCommandKey.Factory.asKey("HelloWorld"))
-                    //设置线程池相关参数
-                    .andThreadPoolPropertiesDefaults(HystrixThreadPoolProperties.Setter()
-                            .withCoreSize(1)
-                            .withMaxQueueSize(1)
-                            // 设置统计的时间窗口值的，毫秒值，circuit break 的打开会根据1个rolling window的统计来计算。若rolling window被设为10000毫秒，则rolling
-                            // window会被分成n个buckets，每个bucket包含success，failure，timeout，rejection的次数的统计信息。默认10000
-                            .withMetricsRollingStatisticalWindowInMilliseconds(1000)
-                            // 设置一个rolling window被划分的数量，若numBuckets＝10，rolling window＝10000，那么一个bucket的时间即1秒。必须符合rolling window %
-                            // numberBuckets == 0。默认10
-                            .withMetricsRollingStatisticalWindowBuckets(1)
-
-                    )
                     .andCommandPropertiesDefaults(
-                            //https://www.cnblogs.com/jabnih/p/9013197.html HystrixCircuitBreaker
-                            //  断路器打开条件，打开后会断路所有请求
-                            //  （1）断路器访问量达到阈值：HystrixCommandProperties.circuitBreakerRequestVolumeThreshold()
-                            //  （2）错误百分比超过所设置错误百分比阈值：HystrixCommandProperties.circuitBreakerErrorThresholdPercentage()
                             HystrixCommandProperties.Setter()
-                                    //某个时间窗口内访问量, 超过这个量才会触发，时间窗口，withMetricsRollingStatisticalWindowInMilliseconds,即使全失败了也不触发
-                                    //这里时间窗口内超过一次就触发
-                                    .withCircuitBreakerRequestVolumeThreshold(1)
-                                    //一个时间窗口内错误百分比阈值：例如时间窗口withMetricsRollingStatisticalWindowInMilliseconds ： 1s，错误率百分之一，则下一秒熔断
-                                    //错误百分比
-                                    .withCircuitBreakerErrorThresholdPercentage(1)
-                                    //断路器重试时间间隔，该时间后会触发重试，看是否进入关闭状态
-                                    .withCircuitBreakerSleepWindowInMilliseconds(10000)
-                                    // 超时时间，默认 1000,改时间后会认为超时
-                                    .withExecutionTimeoutInMilliseconds(50)
+                                    /*
+                                    隔离级别，默认线程
+                                     */
                                     .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.THREAD)
-
-                    ));
+                                    /*
+                                    线程执行超时时间，默认1000，一般选择所服务tp99的时间
+                                     */
+                                    .withExecutionTimeoutInMilliseconds(50)
+                                    /*
+                                    默认20；一个滑动窗口内“触发熔断”要达到的最小访问次数。低于该次数，技术错误率达到，也不会触发熔断操作，用于测试压力是否满足要求。
+                                     */
+                                    .withCircuitBreakerRequestVolumeThreshold(1)
+                                    /*
+                                    一个窗口内“触发熔断”错误率。满足则进入熔断状态，快速失效。
+                                     */
+                                    .withCircuitBreakerErrorThresholdPercentage(1)
+                                    /*
+                                    默认 5000（即5s）；断路器打开后过多久调用时间服务进行重试。
+                                     */
+                                    .withCircuitBreakerSleepWindowInMilliseconds(10000)
+                    )
+                    .andThreadPoolPropertiesDefaults(HystrixThreadPoolProperties.Setter()
+                            /*
+                            线程池大小，默认10
+                             */
+                            .withCoreSize(1)
+                            /*
+                            任务队列大小，使用BlockingQueue，默认-1
+                             */
+                            .withMaxQueueSize(-1)
+                            /*
+                            默认1000（即10）；设置统计的滑动窗口大小，毫秒值。每一个滑动窗口是决策周期，用于CircuitBreaker计算错误率，做状态改变。
+                             */
+                            .withMetricsRollingStatisticalWindowInMilliseconds(1000)
+                            /*
+                            默认10；设置一个滑动窗口内桶的数量，一个bucket的时间周期=timeInMilliseconds/numBuckets,
+                            是统计的最小时间单元，独立计数。Hystrix的滑动窗口按照一个bucket的时间周期向前滑动，合并最近的n个bucket的统计数据，即为一个时间窗口，计算错误率，改变状态。
+                             */
+                            .withMetricsRollingStatisticalWindowBuckets(1)
+                    )
+            );
         }
 
-
+        /**
+         * 代理实际业务
+         */
         @Override
         public boolean service() {
             return doExecute();
@@ -147,15 +178,15 @@ public class HystrixDemo {
 
         @Override
         protected Boolean run() throws Exception {
-            System.out.println("----------------------------- run");
-//            TimeUnit.SECONDS.sleep(1);
-//            return true;
-            throw new RuntimeException("error!");
+            System.out.println("Thread " + Thread.currentThread().getId() + " ：run()");
+            //模拟超时
+            TimeUnit.SECONDS.sleep(1);
+            return true;
         }
 
         @Override
         protected Boolean getFallback() {
-            System.out.println("----------------------------- fallback");
+            System.out.println("Thread " + Thread.currentThread().getId() + " ：getFallback()");
             return false;
         }
 
