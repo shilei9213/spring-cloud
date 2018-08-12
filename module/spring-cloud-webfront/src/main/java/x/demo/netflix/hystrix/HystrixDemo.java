@@ -85,7 +85,7 @@ public class HystrixDemo {
                                     /*
                                     一个窗口内“触发熔断”错误率。满足则进入熔断状态，快速失效。
                                      */
-                                    .withCircuitBreakerErrorThresholdPercentage(1)
+                                    .withCircuitBreakerErrorThresholdPercentage(50)
                                     /*
                                     默认 5000（即5s）；断路器打开后过多久调用时间服务进行重试。
                                      */
