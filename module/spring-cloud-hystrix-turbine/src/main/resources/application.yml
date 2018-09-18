@@ -1,0 +1,33 @@
+server:
+  port: 60011
+
+spring:
+  application:
+    name: turbine-server-standalone
+
+# Eureka 集成方式
+turbine:
+  #appConfig 值为Eureka ServiceId 列表，用于 turbine找到 instance
+  appConfig: webfront1,webfront2
+  clusterNameExpression: metadata['cluster']
+  aggregator:
+    clusterConfig: ["webfront-cluster1","webfront-cluster2"]
+
+# 依赖 Eureka 进行配置
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:50001/eureka/,http://localhost:50002/eureka/,http://localhost:50003/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+    prefer-ip-address: true
+
+# actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ["*"]
+  endpoint:
+    health:
+      show-details: always

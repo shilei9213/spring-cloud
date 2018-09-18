@@ -20,9 +20,6 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
     prefer-ip-address: true
-management: # 用于免密码查看监控信息
-  security:
-    enabled: false
 
 ---
 server:
@@ -38,9 +35,7 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
     prefer-ip-address: true
-management:
-  security:
-    enabled: false
+
 
 
 

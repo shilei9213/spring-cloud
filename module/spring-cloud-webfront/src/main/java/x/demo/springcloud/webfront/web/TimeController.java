@@ -11,7 +11,7 @@ import x.demo.springcloud.webfront.service.TimeService;
 @RequestMapping("/time")
 public class TimeController {
 
-    @Resource(name = "timeV1FeignImpl")
+    @Resource(name = "timeV1MicroServiceCircuitBreakerImpl")
     private TimeService timeService;
 
     @GetMapping("/now")

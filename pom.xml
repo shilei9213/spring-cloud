@@ -29,6 +29,9 @@
         <module>module/spring-cloud-microservice</module>
         <module>module/spring-cloud-webfront</module>
         <module>module/spring-cloud-apigateway</module>
+
+        <module>module/spring-cloud-hystrix-dashboard</module>
+        <module>module/spring-cloud-hystrix-turbine</module>
     </modules>
 
     <dependencyManagement>

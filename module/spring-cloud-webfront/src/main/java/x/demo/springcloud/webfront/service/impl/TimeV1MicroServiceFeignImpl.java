@@ -1,15 +1,13 @@
 package x.demo.springcloud.webfront.service.impl;
 
-import javax.annotation.Resource;
-
 import org.springframework.stereotype.Service;
 import x.demo.springcloud.webfront.service.TimeService;
 import x.demo.springcloud.webfront.service.impl.feign.TimeV1MicroServiceCircuitBreakerClient;
 
-@Service("timeV1FeignImpl")
-public class TimeV1FeignImpl implements TimeService {
+@Service("timeV1MicroServiceFeignImpl")
+public class TimeV1MicroServiceFeignImpl implements TimeService {
 
-    @Resource
+//    @Resource
     private TimeV1MicroServiceCircuitBreakerClient timeV1MicroServiceCircuitBreakerClient;
 
     /**

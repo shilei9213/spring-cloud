@@ -1,5 +1,11 @@
+spring:
+  profiles: Instance1
+  application:
+    name: webfront1
+
 server:
   port: 20001
+
 #security:
 #  basic:
 #    enabled: true
@@ -13,9 +19,6 @@ timeMisroService:
   v1:
     uri: http://microservice-time/time/v1
 
-spring:
-  application:
-    name: webfront
 eureka:
   client:
     service-url:
@@ -23,12 +26,108 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
     prefer-ip-address: true
+    metadata-map:
+      cluster: webfront-cluster1
 
 # 启动 feign hystrix 支持
 feign:
     hystrix:
-        enabled: true
+        enabled: false
 
-management: # 用于免密码查看监控信息
-  security:
-    enabled: false
+# Hystrix stream
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ["*"]
+  endpoint:
+    health:
+      show-details: always
+
+hystrix:
+  # Hystrix 命令配置
+  command:
+    # 命令默认配置
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 100
+      circuitBreaker:
+        requestVolumeThreshold: 1
+        errorThresholdPercentage: 50
+        sleepWindowInMilliseconds: 10000
+    # 指定命令配置，这里使用的是 @HystrixCommand 中的   commandKey = "microservice-time.now"（除非公共，一般不建议在配置文件中统一配置）
+    microservice-time.now:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 100
+      circuitBreaker:
+        requestVolumeThreshold: 1
+        errorThresholdPercentage: 50
+        sleepWindowInMilliseconds: 10000
+    # Hystrix  线程池配置
+    threadpool:
+      # 线程池默认配置
+      default:
+        coreSize: 1
+        maxQueueSize: 1
+        metrics:
+          rollingStats:
+            timeInMilliseconds: 10000
+            numBuckets: 1
+      # 指定命令线程池配置，这里使用的是 @HystrixCommand 中的   groupKey = "microservice-time",
+      microservice-time:
+        coreSize: 5
+        maxQueueSize: 5
+        metrics:
+          rollingStats:
+            timeInMilliseconds: 10000
+            numBuckets: 1
+---
+spring:
+  profiles: Instance2
+  application:
+    name: webfront2
+
+server:
+  port: 20002
+
+#security:
+#  basic:
+#    enabled: true
+#  user:
+#    name: admin
+#    password: 123456
+
+# 自定义配置
+timeMisroService:
+  server: http://localhost:10001
+  v1:
+    uri: http://microservice-time/time/v1
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:50001/eureka/,http://localhost:50002/eureka/,http://localhost:50003/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
+    prefer-ip-address: true
+    metadata-map:
+      cluster: webfront-cluster2
+
+# 启动 feign hystrix 支持
+feign:
+    hystrix:
+        enabled: false
+
+# Hystrix stream
+management:
+  endpoints:
+    web:
+      exposure:
+        include: ["*"]
+  endpoint:
+    health:
+      show-details: always

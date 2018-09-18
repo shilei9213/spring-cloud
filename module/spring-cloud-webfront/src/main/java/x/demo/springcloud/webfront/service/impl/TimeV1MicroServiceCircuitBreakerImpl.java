@@ -19,7 +19,10 @@ public class TimeV1MicroServiceCircuitBreakerImpl implements TimeService {
      * @return 当前时间，格式：yyyy-MM-dd HH:mm:ss
      */
     @Override
-    @HystrixCommand(fallbackMethod = "fallbackNow")
+    @HystrixCommand(
+            groupKey = "microservice-time",
+            commandKey = "microservice-time.now",
+            fallbackMethod = "fallbackNow")
     public String now() {
         ProtocolResult<String> result = timeV1MicroServiceDiscoveryClient.now(null);
         return result.getBody();
@@ -30,7 +33,7 @@ public class TimeV1MicroServiceCircuitBreakerImpl implements TimeService {
      *
      * @return 当前时间：毫秒数
      */
-    public String fallbackNow(){
+    public String fallbackNow() {
         return String.valueOf(System.currentTimeMillis());
     }
 }
