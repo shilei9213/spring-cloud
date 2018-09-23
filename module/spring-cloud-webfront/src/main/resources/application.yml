@@ -1,7 +1,9 @@
 spring:
   profiles: Instance1
   application:
-    name: webfront1
+    name: webfront
+  aop:
+    proxy-target-class: true
 
 server:
   port: 20001
@@ -26,13 +28,14 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
     prefer-ip-address: true
+    # 所属集群，提交使用
     metadata-map:
-      cluster: webfront-cluster1
+      cluster: webfront-cluster
 
 # 启动 feign hystrix 支持
 feign:
-    hystrix:
-        enabled: false
+  hystrix:
+    enabled: false
 
 # Hystrix stream
 management:
@@ -67,29 +70,29 @@ hystrix:
         requestVolumeThreshold: 1
         errorThresholdPercentage: 50
         sleepWindowInMilliseconds: 10000
-    # Hystrix  线程池配置
-    threadpool:
-      # 线程池默认配置
-      default:
-        coreSize: 1
-        maxQueueSize: 1
-        metrics:
-          rollingStats:
-            timeInMilliseconds: 10000
-            numBuckets: 1
-      # 指定命令线程池配置，这里使用的是 @HystrixCommand 中的   groupKey = "microservice-time",
-      microservice-time:
-        coreSize: 5
-        maxQueueSize: 5
-        metrics:
-          rollingStats:
-            timeInMilliseconds: 10000
-            numBuckets: 1
+  # Hystrix  线程池配置
+  threadpool:
+    # 线程池默认配置
+    default:
+      coreSize: 1
+      maxQueueSize: 1
+      metrics:
+        rollingStats:
+          timeInMilliseconds: 10000
+          numBuckets: 1
+    # 指定命令线程池配置，这里使用的是 @HystrixCommand 中的   groupKey = "microservice-time",
+    microservice-time:
+      coreSize: 5
+      maxQueueSize: 5
+      metrics:
+        rollingStats:
+          timeInMilliseconds: 10000
+          numBuckets: 1
 ---
 spring:
   profiles: Instance2
   application:
-    name: webfront2
+    name: webfront
 
 server:
   port: 20002
@@ -115,12 +118,12 @@ eureka:
     instance-id: ${spring.application.name}:${spring.application.instance_id:${server.port}}
     prefer-ip-address: true
     metadata-map:
-      cluster: webfront-cluster2
+      cluster: webfront-cluster
 
 # 启动 feign hystrix 支持
 feign:
-    hystrix:
-        enabled: false
+  hystrix:
+    enabled: false
 
 # Hystrix stream
 management:

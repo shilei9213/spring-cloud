@@ -7,11 +7,12 @@ spring:
 
 # Eureka 集成方式
 turbine:
-  #appConfig 值为Eureka ServiceId 列表，用于 turbine找到 instance
-  appConfig: webfront1,webfront2
+  # appConfig 值为Eureka ServiceId 列表，用于 turbine找到 instance
+  appConfig: webfront
   clusterNameExpression: metadata['cluster']
+  # 集群参数，指定要监控的集群
   aggregator:
-    clusterConfig: ["webfront-cluster1","webfront-cluster2"]
+    clusterConfig: ["webfront-cluster"]
 
 # 依赖 Eureka 进行配置
 eureka:

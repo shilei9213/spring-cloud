@@ -8,7 +8,7 @@ import org.springframework.cloud.openfeign.support.SpringMvcContract;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
-import x.demo.springcloud.webfront.service.impl.feign.TimeV1MicroServiceClient;
+import x.demo.springcloud.webfront.service.impl.feign.client.TimeV1MicroServiceClient;
 
 @Configuration
 public class SpringConfiguration {

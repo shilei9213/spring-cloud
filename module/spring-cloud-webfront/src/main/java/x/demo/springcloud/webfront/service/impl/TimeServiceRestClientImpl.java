@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import x.demo.springcloud.webfront.service.TimeService;
 
-@Service("timeV1MicroServiceImpl")
-public class TimeV1MicroServiceImpl implements TimeService {
+@Service
+public class TimeServiceRestClientImpl implements TimeService {
 
     @Value("${timeMisroService.v1.uri}")
     private String timeMicroServiceV1Uri;
@@ -26,6 +26,4 @@ public class TimeV1MicroServiceImpl implements TimeService {
         ProtocolResult<String> result = restTemplate.getForObject(timeMicroServiceV1Uri + "/now", ProtocolResult.class);
         return result.getBody();
     }
-
-
 }
