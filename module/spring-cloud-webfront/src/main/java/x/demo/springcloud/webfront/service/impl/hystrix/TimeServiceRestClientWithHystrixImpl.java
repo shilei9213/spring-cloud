@@ -12,8 +12,6 @@ import x.demo.springcloud.webfront.service.impl.ProtocolResult;
 /**
  * Hystrix 熔断实现
  *
- * @author shilei0907
- * @version 1.0, 2018/9/23
  */
 @Service
 public class TimeServiceRestClientWithHystrixImpl implements TimeService {

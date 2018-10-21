@@ -1,7 +1,6 @@
 package x.demo.springcloud.webfront.service.impl;
 
-import javax.annotation.Resource;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -13,7 +12,7 @@ public class TimeServiceRestClientImpl implements TimeService {
     @Value("${timeMisroService.v1.uri}")
     private String timeMicroServiceV1Uri;
 
-    @Resource
+    @Autowired
     private RestTemplate restTemplate;
 
     /**
@@ -23,7 +22,8 @@ public class TimeServiceRestClientImpl implements TimeService {
      */
     @Override
     public String now() {
-        ProtocolResult<String> result = restTemplate.getForObject(timeMicroServiceV1Uri + "/now", ProtocolResult.class);
+        String url = timeMicroServiceV1Uri + "/now";
+        ProtocolResult<String> result = restTemplate.getForObject(url, ProtocolResult.class);
         return result.getBody();
     }
 }

@@ -11,7 +11,7 @@ import x.demo.springcloud.webfront.service.TimeService;
 @RequestMapping("/time")
 public class TimeController {
 
-    @Resource(name = "timeServiceRestClientWithHystrixImpl")
+    @Resource(name = "timeServiceRestClientImpl")
     private TimeService timeService;
 
     @GetMapping("/now")

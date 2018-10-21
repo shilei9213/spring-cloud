@@ -11,7 +11,6 @@ import com.netflix.loadbalancer.Server;
 /**
  * RandomRule Demo
  *
- * http://blog.csdn.net/forezp/article/details/74820899
  */
 public class RandomRuleDemo {
 

@@ -1,19 +1,43 @@
+---
 spring:
-  profiles: Instance1
+  profiles: Standalone
   application:
     name: webfront
-  aop:
-    proxy-target-class: true
 
 server:
   port: 20001
 
-#security:
-#  basic:
-#    enabled: true
-#  user:
-#    name: admin
-#    password: 123456
+# 自定义配置
+timeMisroService:
+  server: http://microservice-time
+  v1:
+    uri: http://microservice-time/time/v1
+
+# Ribbon 负载均衡配置
+# 取消eureka 依赖
+ribbon:
+  eureka:
+    enabled: false
+# microservice-time 相对于虚拟主机，RestTemplate 必须使用microservice-time 访问 才能走复杂均衡策略
+microservice-time:
+  ribbon:
+    # LoadBalancer
+    NFLoadBalancerClassName:  com.netflix.loadbalancer.DynamicServerListLoadBalancer
+    # 由于禁用了Ribbon Eureka获取服务ip端口，需要手动提供
+    listOfServers: 127.0.0.1:10001,127.0.0.1:10002
+    # 负载均衡策略
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RoundRobinRule
+    # ping策略
+    NFLoadBalancerPingClassName: com.netflix.loadbalancer.NoOpPing
+
+---
+spring:
+  profiles: Instance1
+  application:
+    name: webfront
+
+server:
+  port: 20001
 
 # 自定义配置
 timeMisroService:
@@ -97,12 +121,6 @@ spring:
 server:
   port: 20002
 
-#security:
-#  basic:
-#    enabled: true
-#  user:
-#    name: admin
-#    password: 123456
 
 # 自定义配置
 timeMisroService:
